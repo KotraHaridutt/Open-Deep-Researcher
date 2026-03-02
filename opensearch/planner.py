@@ -1,45 +1,25 @@
-"""
-Simple LLM Integration with LM Studio
-This module provides a simple interface to query the LLM running in LM Studio.
-"""
+#Simple LLM Integration with LM Studio
 
 from openai import OpenAI
 
-
 class LLMPlanner:
-    """Simple planner that integrates with LM Studio LLM."""
     
     def __init__(self, base_url="http://localhost:1234/v1", model="mistralai/ministral-3-3b"):
-        """
-        Initialize the LLM client.
         
-        Args:
-            base_url: The LM Studio server URL (default: http://localhost:1234/v1)
-            model: The model identifier
-        """
         self.client = OpenAI(
             base_url=base_url,
-            api_key="lm-studio"  # LM Studio doesn't require a real API key
+            api_key="lm-studio"
         )
         self.model = model
     
-    def ask(self, prompt, temperature=0.7, max_tokens=500):
-        """
-        Send a prompt to the LLM and get a response.
+    def ask(self, system_prompt, query, temperature=0.7, max_tokens=500):
         
-        Args:
-            prompt: The question or prompt to send to the LLM
-            temperature: Sampling temperature (0.0 to 1.0)
-            max_tokens: Maximum number of tokens in the response
-            
-        Returns:
-            The LLM's response as a string
-        """
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role": "user", "content": prompt}
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": query}
                 ],
                 temperature=temperature,
                 max_tokens=max_tokens
@@ -54,35 +34,39 @@ if __name__ == "__main__":
     # Create the planner instance
     planner = LLMPlanner()
     
-    # Example prompts
-    prompts = [
-        "What is the capital of France?",
-        "Explain about NVIDIA Chips.",
-        "Write a haiku about programming."
-    ]
+    # Define system prompt for AI researcher
+    system_prompt = """You are an expert AI researcher with deep knowledge in machine learning, data science, and artificial intelligence. 
     
-    print("=" * 60)
-    print("LLM Planner - Testing with LM Studio")
-    print("=" * 60)
-    
-    for prompt in prompts:
-        print(f"\n📝 Prompt: {prompt}")
-        print("-" * 60)
-        response = planner.ask(prompt)
-        print(f"🤖 Response: {response}")
-        print("-" * 60)
-    
-    # Interactive mode
+Your responsibilities:
+- Analyze complex research questions thoroughly
+- Provide evidence-based, accurate information
+- Structure your responses in a clear, organized manner
+- Explain technical concepts in both simple and detailed ways
+- Identify gaps in current knowledge and suggest future research directions
+- Cite relevant methodologies and best practices
+
+Response Structure:
+1. **Summary**: Brief overview of the answer (2-3 sentences)
+2. **Key Points**: Main findings or concepts (bullet points)
+3. **Explanation**: Detailed explanation of each key point
+4. **Implications**: Practical applications and relevance
+5. **References**: Related concepts or areas for further study
+
+Always maintain scientific rigor and provide balanced perspectives."""
+
+    # Interactive mode with prompt + query separation
     print("\n" + "=" * 60)
-    print("Interactive Mode - Type your questions (or 'quit' to exit)")
+    print("AI Researcher Mode - Knowledge Q&A")
     print("=" * 60)
     
     while True:
-        user_input = input("\n❓ Your question: ")
-        if user_input.lower() in ['quit', 'exit', 'q']:
+        query = input("\n❓ Your research question: ")
+        if query.lower() in ['quit', 'exit', 'q']:
             print("Goodbye!")
             break
         
-        if user_input.strip():
-            response = planner.ask(user_input)
-            print(f"\n🤖 Response: {response}")
+        if query.strip():
+            print("\n🔍 Researching...")
+            response = planner.ask(system_prompt, query)
+            print(f"\n🤖 Response:\n{response}")
+            print("-" * 60)
